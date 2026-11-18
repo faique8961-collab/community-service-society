@@ -1,32 +1,33 @@
-// Temporary illustrative content. Replace with society-approved information.
-export const projects = [
-  {
-    category: "Community welfare",
-    title: "Community Support Drive",
-    description: "A sample project entry showing how the society's initiatives can be presented.",
-    date: "Add project date",
-    status: "Completed",
-    image: "https://images.unsplash.com/photo-1559027615-cd4628902d4a?auto=format&fit=crop&w=1200&q=80",
-  },
-  {
-    category: "Education",
-    title: "Learning Together",
-    description: "A placeholder for educational outreach, mentoring or learning support activities.",
-    date: "Add project date",
-    status: "Ongoing",
-    image: "https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=1200&q=80",
-  },
-  {
-    category: "Environment",
-    title: "A Greener Community",
-    description: "A placeholder for environmental awareness, clean-up or plantation initiatives.",
-    date: "Add project date",
-    status: "Upcoming",
-    image: "https://images.unsplash.com/photo-1472396961693-142e6e269027?auto=format&fit=crop&w=1200&q=80",
-  },
-];
+export const society = {
+  name: 'MCS Community Service Society',
+  shortName: 'CSS',
+  handle: '@mcscommunityservice',
+  founded: '2022',
+  mission: 'Focused on uplifting vulnerable individuals, students, and campus support staff through financial, moral, and practical assistance.',
+  history: 'Established in 2022 as a student-led welfare initiative, the MCS Community Service Society brings students together around a shared commitment to service. Through fundraising, outreach, and practical support, the society works to make care and compassion visible in everyday action.',
+}
 
-export const events = [
-  { title: "Volunteer Orientation", date: "Date to be announced", location: "University campus" },
-  { title: "Community Outreach", date: "Date to be announced", location: "To be announced" },
-];
+export const initiatives = [
+  { id: 'blood-drive', number: '01', title: 'Blood Donation Drives', eyebrow: 'Give the gift of life', description: 'Every drop counts. Our recurring Blood Drives bring together cadets, faculty, and the MCS community to support AFIT. By stepping forward to donate, our student body actively contributes to saving lives and maintaining critical blood reserves for those in urgent medical need. Together, we turn solidarity into tangible hope.', tag: 'Health & wellbeing' },
+  { id: 'plantation', number: '02', title: 'Plantation Drives', eyebrow: 'Rooting for a greener tomorrow', description: 'A sustainable future starts in our own backyard. Through our campus-wide and regional Plantation Drives, the Community Service Society takes active steps toward combating climate change and fostering ecological awareness. Volunteers come together to plant saplings, green our surroundings, and instill a lasting culture of environmental stewardship for generations to come.', tag: 'Environment' },
+  { id: 'ramzan-ration', number: '03', title: 'Ramzan Ration Drive', eyebrow: 'Sharing blessings, nourishing families', description: 'The holy month of Ramzan is a time of reflection, empathy, and generosity. Our annual Ramzan Ration Drive focuses on assembling and distributing essential food packages to deserving families and daily-wage earners. With the support of our generous donors and dedicated volunteers, we strive to ease the burdens of the month and ensure every household can share in the joy of Eid.', tag: 'Food support' },
+  { id: 'winter-clothing', number: '04', title: 'Winter Clothing Drive', eyebrow: 'Spreading warmth, one jacket at a time', description: 'As temperatures drop in the twin cities, the chill is felt hardest by society’s most vulnerable. Our Winter Clothing Drive mobilizes the MCS student body to collect gently used coats, sweaters, blankets, and warm wear. We then distribute these essentials to underprivileged communities, ensuring that our neighbours stay warm and safe through the harshest winter months.', tag: 'Seasonal relief', image: '/images/winter-clothing-drive.jpg' },
+  { id: 'summer-clothing', number: '05', title: 'Summer Clothing Drive', eyebrow: 'Comfort and care in the warm months', description: 'Changing seasons bring new challenges for marginalized communities. The Summer Clothing Drive is dedicated to gathering breathable, lightweight summer apparel and distributing it to families in need. This initiative reflects our continuous commitment to year-round welfare, ensuring that comfort and dignity are upheld regardless of the weather.', tag: 'Seasonal relief' },
+  { id: 'orphanage', number: '06', title: 'Orphanage Visits', eyebrow: 'Creating smiles and treasured memories', description: 'Nothing is more powerful than a shared smile. Our regular visits to local orphanages are designed to offer more than just material support—they are about building genuine human connections. Whether it’s organizing fun activities, storytelling sessions, or simply spending quality time talking and playing, our volunteers strive to make every child feel valued, cherished, and inspired.', tag: 'Community outreach' },
+  { id: 'old-age-home', number: '07', title: 'Old Age Home Visits', eyebrow: 'Honouring wisdom, sharing love', description: 'Our elders are the living archives of our history, wisdom, and culture. Through our visits to old age homes, the Community Service Society seeks to combat loneliness and bring comfort to senior citizens. Listening to their life stories, sharing tea, and offering companionship allows our students to bridge generational divides and give back to those who paved the way before us.', tag: 'Community outreach' },
+]
+
+export const committee = [
+  { name: 'Omer Nadeem', role: 'President', bio: 'Assalam o Alaikum! Alhamdulillah, I have been blessed to lead the MCS Community Service Society. We believe that service doesn’t need a title, just a sincere heart. We need your support and prayers in this journey of Khidmat-e-Khalq. Let’s serve together for the sake of Allah and humanity.' },
+  { name: 'Abdullah Gul', role: 'Vice President', bio: 'I am truly grateful for the trust placed in me and look forward to serving the society with the same enthusiasm and commitment that has defined my journey so far. With the collective efforts of our members, I hope we can make this year one of continued growth, meaningful service, and lasting impact.' },
+  { name: 'Saleha Sajid', role: 'Vice President', bio: 'Saleha Sajid, signing in as vice president.' },
+  { name: 'Muhammad Awais Aslam', role: 'Vice President', bio: 'Salam everyone! Muhammad Awais Aslam here, from BEE60, Vice President of Community Service Society for session 2026–27.' },
+  { name: 'Hanya Yousaf', role: 'General Secretary', bio: 'My dearest CSS, I’d choose you a thousand times over. Here we go again: another year of serving, giving back, making an impact, and collecting prayers along the way. Some things are hard to put into words, and this feeling is one of them. Signing in!' },
+  { name: 'Ureedah Khan', role: 'General Secretary', bio: 'Gen sec signing in.' },
+  { name: 'Faique Mustafa', role: 'Joint Secretary', bio: 'Assalamualaikum! I’m honoured to be a part of this society. I always had this idea to improve the lives of people somehow within my capacity. “And do good; indeed, Allah loves the doers of good.” — Surah Al-Baqarah (2:195). Let’s have a remarkable session! May Allah allow us to do our utmost good and reward our deeds!' },
+  { name: 'Armaghan Hamid', role: 'Joint Secretary – Outreach', bio: 'After serving as a Director in the Community Service Society last year, I’m stepping forward this year as Joint Secretary Outreach. I’m committed to contributing my time, skills, and efforts to support the society in every way possible and strengthen our outreach initiatives. I’m excited to continue serving the community, create a meaningful impact, and take the society to an even better place than before.' },
+  { name: 'Husnain Bukhari', role: 'Secretary Finance', bio: 'Not just a society, a whole movement! Different people, one purpose: to serve, to lead, and to leave a mark. Here’s to big energy, and an impact worth remembering. We’re here. We’re ready. Let’s serve.' },
+  { name: 'Afifa Jahanzeb', role: 'Secretary Media Management', bio: 'Hi, Afifa Jahanzeb here — Secretary Media, CSS. Grateful for the journey so far, and excited for all that’s ahead.' },
+  { name: 'Maryam Abbasi', role: 'Secretary Events', bio: 'Taking on as Secretary Events, Maryam Abbasi this side. Looking forward to another year of experiences and moments worth remembering.' },
+  { name: 'Sara Sadiq', role: 'Secretary Media Covering', bio: 'Hi guys, your Secretary Media taking over. Capturing moments, creating memories. From events to initiatives, we’ve got it covered. Community, creativity, and a little chaos. Let’s make it count.' },
+]

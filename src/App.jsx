@@ -1,25 +1,35 @@
-import { Routes, Route } from "react-router-dom";
-import SiteLayout from "./components/SiteLayout.jsx";
-import Home from "./pages/Home.jsx";
-import About from "./pages/About.jsx";
-import Projects from "./pages/Projects.jsx";
-import Events from "./pages/Events.jsx";
-import GetInvolved from "./pages/GetInvolved.jsx";
-import Admin from "./pages/Admin.jsx";
-import NotFound from "./pages/NotFound.jsx";
+import { useState } from 'react'
+import { ArrowDown, ArrowRight, ArrowUpRight, HeartHandshake, Menu, X, Instagram, Mail, HandHeart, Leaf, Droplets, Users, Quote, ChevronRight } from 'lucide-react'
+import { society, initiatives, committee } from './data/content'
 
-export default function App() {
-  return (
-    <Routes>
-      <Route element={<SiteLayout />}>
-        <Route path="/" element={<Home />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/projects" element={<Projects />} />
-        <Route path="/events" element={<Events />} />
-        <Route path="/get-involved" element={<GetInvolved />} />
-      </Route>
-      <Route path="/admin" element={<Admin />} />
-      <Route path="*" element={<NotFound />} />
-    </Routes>
-  );
+const nav = [ ['About', '#about'], ['Our Work', '#initiatives'], ['Our People', '#committee'], ['Get Involved', '#get-involved'] ]
+
+function Header() {
+  const [open, setOpen] = useState(false)
+  return <header className="site-header"><a className="brand" href="#home"><img src="/images/society-logo.png" alt="MCS Community Service Society logo"/><span><strong>MCS COMMUNITY</strong><small>SERVICE SOCIETY</small></span></a>
+    <nav className={open ? 'nav nav-open' : 'nav'}>{nav.map(([label, href]) => <a key={href} href={href} onClick={() => setOpen(false)}>{label}</a>)}<a className="nav-cta" href="#get-involved" onClick={() => setOpen(false)}>Join the effort <ArrowUpRight size={15}/></a></nav>
+    <button className="mobile-toggle" aria-label="Toggle navigation" onClick={() => setOpen(!open)}>{open ? <X/> : <Menu/>}</button>
+  </header>
 }
+
+function SectionIntro({kicker, title, text, light=false}) { return <div className={`section-intro ${light ? 'light' : ''}`}><span className="eyebrow">{kicker}</span><h2>{title}</h2>{text && <p>{text}</p>}</div> }
+
+function Hero() { return <section className="hero" id="home"><div className="hero-copy"><span className="eyebrow"><i/> A student-led welfare initiative · Est. 2022</span><h1>Small acts.<br/><em>Lasting</em> impact.</h1><p>We bring people together to make compassion practical — supporting vulnerable communities through service, generosity, and collective action.</p><div className="hero-actions"><a className="button button-red" href="#initiatives">Explore our work <ArrowRight size={17}/></a><a className="text-link" href="#about">Discover our story <ArrowDown size={16}/></a></div><div className="hero-note"><span className="note-line"/><span>For people. With purpose. Through service.</span></div></div><div className="hero-visual"><div className="hero-photo"><img src="/images/winter-clothing-drive.jpg" alt="MCS Community Service Society volunteers at a clothing donation drive"/><div className="photo-caption"><span>COMMUNITY IN ACTION</span><strong>Warmth is something we share.</strong></div></div><div className="hero-stamp"><HeartHandshake size={25}/><span>Khidmat-e-Khalq</span></div><div className="hero-side-label">MCS · COMMUNITY SERVICE SOCIETY</div></div><a className="scroll-cue" href="#about">SCROLL TO EXPLORE <ArrowDown size={14}/></a></section> }
+
+function About() { return <section className="about-section section-pad" id="about"><div className="about-mark"><span>OUR<br/>PURPOSE</span><div className="mark-circle"><HeartHandshake size={52}/></div><small>COMPASSION IN ACTION · SINCE 2022</small></div><div className="about-copy"><SectionIntro kicker="Who we are" title={<>Service is not a moment.<br/><em>It is a commitment.</em></>} text={society.history}/><div className="mission-card"><span className="mission-icon"><HandHeart size={22}/></span><div><span className="eyebrow">Our mission</span><p>{society.mission}</p></div></div><div className="about-foot"><span>ESTABLISHED IN {society.founded}</span><span className="red-rule"/><span>MCS COMMUNITY SERVICE SOCIETY</span></div></div></section> }
+
+function InitiativeCard({item, index}) { return <article className={`initiative-card ${item.image ? 'has-image' : ''}`}><div className="initiative-top"><span className="initiative-number">{item.number}</span><span className="initiative-tag">{item.tag}</span></div>{item.image && <div className="initiative-image"><img src={item.image} alt="Volunteers collecting clothing donations"/></div>}<div className="initiative-body"><span className="eyebrow">{item.eyebrow}</span><h3>{item.title}</h3><p>{item.description}</p><a href="#get-involved" aria-label={`Get involved in ${item.title}`}><ArrowUpRight size={18}/></a></div></article> }
+
+function Initiatives() { return <section className="initiatives-section section-pad" id="initiatives"><div className="section-head-row"><SectionIntro kicker="What we do" title={<>Turning good intentions<br/><em>into meaningful action.</em></>} text="Our work spans essential support, community connection, and care for the world we share."/><span className="section-index">01 — 07<br/><small>OUR INITIATIVES</small></span></div><div className="initiative-grid">{initiatives.map((item,i)=><InitiativeCard key={item.id} item={item} index={i}/>)}</div></section> }
+
+function ImpactBand() { return <section className="impact-band"><div className="impact-intro"><span className="eyebrow">The spirit behind the work</span><h2>Many hands.<br/><em>One purpose.</em></h2></div><div className="impact-statement"><Quote size={25}/><p>“And do good; indeed, Allah loves the doers of good.”</p><span>Surah Al-Baqarah · 2:195</span></div><div className="impact-note">We believe the measure of service is not a title or a number. It is the care we put into showing up for one another.</div></section> }
+
+function CommitteeCard({person, index}) { return <article className="person-card"><div className="person-photo"><div className="photo-placeholder"><Users size={30}/><span>PHOTO</span></div><span className="person-index">{String(index+1).padStart(2,'0')}</span></div><div className="person-details"><span className="person-role">{person.role}</span><h3>{person.name}</h3><p>{person.bio}</p></div></article> }
+
+function Committee() { return <section className="committee-section section-pad" id="committee"><div className="section-head-row"><SectionIntro kicker="The people behind the purpose" title={<>A community built<br/><em>by people who care.</em></>} text="Meet the executive committee for the 2026–27 session. Each member brings their own energy to a shared commitment to serve."/><span className="section-index">SESSION<br/><strong>2026–27</strong></span></div><div className="committee-grid">{committee.map((person,i)=><CommitteeCard key={`${person.name}-${person.role}`} person={person} index={i}/>)}</div><div className="committee-note"><span className="red-rule"/>The society also works with a wider team of 8 directors and 8 department directors.</div></section> }
+
+function JoinSection() { return <section className="join-section" id="get-involved"><div className="join-pattern"/><div className="join-content"><span className="eyebrow">Be part of something meaningful</span><h2>Good grows when<br/><em>we grow it together.</em></h2><p>Whether you want to volunteer, contribute, collaborate, or simply learn more about what we do, there is a place for you in this effort.</p><a className="button button-white" href="https://www.instagram.com/mcscommunityservice/" target="_blank" rel="noreferrer">Connect with us <ArrowUpRight size={17}/></a></div><div className="join-seal"><HeartHandshake size={56}/><span>GIVE · SERVE · GROW</span></div></section> }
+
+function Footer() { return <footer className="footer"><div className="footer-main"><a className="brand footer-brand" href="#home"><img src="/images/society-logo.png" alt=""/><span><strong>MCS COMMUNITY</strong><small>SERVICE SOCIETY</small></span></a><p>For people. With purpose.<br/>Through service.</p><div className="footer-social"><a href="https://www.instagram.com/mcscommunityservice/" target="_blank" rel="noreferrer"><Instagram size={17}/> {society.handle}</a></div></div><div className="footer-bottom"><span>© {new Date().getFullYear()} MCS Community Service Society</span><a href="#home">Back to top ↑</a><span>EST. 2022 · MCS</span></div></footer> }
+
+export default function App() { return <><Header/><main><Hero/><About/><Initiatives/><ImpactBand/><Committee/><JoinSection/></main><Footer/></> }

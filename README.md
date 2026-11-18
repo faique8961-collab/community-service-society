@@ -1,67 +1,36 @@
+# MCS Community Service Society website
 
-# Community Service Society website
-
-A React + Vite starter for the society's public website and future content-management dashboard.
-
-## Requirements
-
-- Node.js 20.19+ or 22.12+
-- npm
+A React + Vite website using the supplied MCS Community Service Society text and branding assets.
 
 ## Run locally
 
-1. Extract this folder.
-2. Open a terminal in the project folder.
-3. Run:
+```bash
+npm install
+npm run dev
+```
 
-   ```bash
-   npm install
-   npm run dev
-   ```
+Open the local URL printed by Vite (usually http://localhost:5173).
 
-4. Open the local URL printed by Vite (usually http://localhost:5173).
-
-## Build check
+## Build for deployment
 
 ```bash
 npm run build
 npm run preview
 ```
 
-## Project structure
+## Updating content
 
-```text
-src/
-  components/       Shared site components
-  data/             Temporary sample content
-  lib/              Supabase client and shared utilities
-  pages/            Public pages and admin placeholder
-  App.jsx           Routes
-  index.css         Global styles and Tailwind import
-  main.jsx          React entry point
-```
+- Society history, mission, initiatives and committee biographies: `src/data/content.js`
+- Main page layout and sections: `src/App.jsx`
+- Visual theme and responsive styling: `src/index.css`
+- Images: `public/images/`
 
-## Supabase setup (later milestone)
+Committee portrait placeholders are intentional. Add approved portraits to `public/images/` and then update each committee entry and its card in `src/App.jsx` when ready.
 
-1. Create a Supabase project owned by the society.
-2. Copy its Project URL and publishable/anon key into a local `.env` file.
-3. Never put the `service_role` key in frontend code.
-4. We will add database tables, Row Level Security policies, authentication and storage policies before enabling the admin CMS.
+## Notes
 
-## Cloudflare Pages deployment (later milestone)
-
-- Connect the GitHub repository to Cloudflare Pages.
-- Framework preset: Vite
-- Build command: `npm run build`
-- Build output directory: `dist`
-- Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` as build environment variables once Supabase is configured.
-
-The free `pages.dev` address can be used initially. Free-plan limits and provider terms should be checked at deployment time.
-
-## Important before launch
-
-Replace sample society details and imagery with approved material. Obtain permission before publishing identifiable photographs or personal information, especially involving children or vulnerable people. Add and test database security policies before accepting real enquiries or administrator accounts.
-=======
-# community-service-society
-Website for Community Service
-
+- This is the public-facing first content/design pass. The admin dashboard, Supabase authentication, database and CMS have not yet been connected.
+- Only the supplied clothing-drive photograph is currently used. Other event image slots can be added when photographs are supplied.
+- The supplied university logo JPG contains a visible checkerboard background, so it is not used in the design. The society logo PNG is used instead.
+- No unverified impact totals are published. The supplied history text contains an unclear fundraising figure range; confirm the exact figure before publishing a number.
+- Review all biographies, spelling, titles and photo permissions with the society before deployment.
