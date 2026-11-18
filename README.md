@@ -1,3 +1,4 @@
+
 # Community Service Society website
 
 A React + Vite starter for the society's public website and future content-management dashboard.
@@ -60,3 +61,7 @@ The free `pages.dev` address can be used initially. Free-plan limits and provide
 ## Important before launch
 
 Replace sample society details and imagery with approved material. Obtain permission before publishing identifiable photographs or personal information, especially involving children or vulnerable people. Add and test database security policies before accepting real enquiries or administrator accounts.
+=======
+# community-service-society
+Website for Community Service
+
