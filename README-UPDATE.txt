@@ -5,7 +5,7 @@ This update addresses the latest requested changes:
 - Removes the separate Initiatives navigation/page. Events is now the single archive for events AND initiatives, including event detail pages.
 - Keeps the Gallery as the broader photo archive of all supplied photographs.
 - Reorganises Our Team into a larger President feature, one Vice Presidents row, one General Secretaries row, followed by Joint Secretaries, Secretary Events, Secretary Media, and Secretary Finance sections.
-- Labels the executive committee section as the Main Panel and notes the 8 Directors and 8 Department Directors as the wider supporting team.
+- Labels the executive committee section as the Main Panel and notes the 8 Directors and 8 Deputy Directors as the wider supporting team.
 - Adds a Volunteer page with Instagram and President/General Secretary contact cards.
 
 IMPORTANT PHONE PLACEHOLDER:
@@ -27,3 +27,11 @@ GITHUB (only after the site works and build succeeds):
   git push origin main
 
 The update includes the optimized image assets under public/images, including both branding logos. No Supabase/CMS functionality is included in this update.
+
+
+QUALITY CHECKS (no additional npm packages required):
+1. From the project root, run: node --test tests/site.test.mjs
+2. Then run: npm run build
+The Node test suite checks route/navigation declarations, content IDs, committee roles,
+the corrected Deputy Directors wording, volunteer contact labelling, and image-file paths.
+It is a static regression suite; it does not replace browser-based visual/accessibility testing.
