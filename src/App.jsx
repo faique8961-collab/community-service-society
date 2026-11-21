@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Routes, Route, NavLink, Link, useParams } from 'react-router-dom'
 import { ArrowRight, ArrowUpRight, Menu, X, Instagram, HeartHandshake, HandHeart, Users } from 'lucide-react'
 import { society, initiatives, events, committee } from './data/content'
+import Admin from './pages/Admin'
 
 function Header(){
  const [open,setOpen]=useState(false)
@@ -42,4 +43,12 @@ function GetInvolved(){const referencePhone='+92 300 000 0000';const phoneLink='
 function JoinBand(){return <section className="join-section"><div className="join-pattern"/><div className="join-content"><span className="eyebrow">Be part of something meaningful</span><h2>Good grows when<br/><em>we grow it together.</em></h2><p>Volunteer, contribute, collaborate, or simply learn more about what we do.</p><Link className="button button-white" to="/get-involved">Get involved <ArrowUpRight size={17}/></Link></div><div className="join-seal"><HeartHandshake size={56}/><span>GIVE · SERVE · GROW</span></div></section>}
 function NotFound(){return <PageHero eyebrow="404" title="Page not found" description="The page you're looking for doesn't exist or may have moved."/>}
 function AppShell(){return <><Header/><main><Routes><Route path="/" element={<Home/>}/><Route path="/about" element={<About/>}/><Route path="/events" element={<EventsPage/>}/><Route path="/events/:id" element={<EventDetail/>}/><Route path="/team" element={<Team/>}/><Route path="/gallery" element={<Gallery/>}/><Route path="/get-involved" element={<GetInvolved/>}/><Route path="*" element={<NotFound/>}/></Routes></main><Footer/></>}
-export default function App(){return <AppShell/>}
+
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/admin" element={<Admin />} />
+      <Route path="/*" element={<AppShell />} />
+    </Routes>
+  )
+}
