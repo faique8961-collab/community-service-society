@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import {
   Plus,
@@ -17,7 +16,6 @@ import { supabase } from "../../lib/supabase";
 const emptyForm = {
   title: "",
   slug: "",
-  event_type: "event",
   summary: "",
   description: "",
   date_label: "",
@@ -83,7 +81,6 @@ export default function EventsManager() {
     setForm({
       title: event.title || "",
       slug: event.slug || "",
-      event_type: event.event_type || "event",
       summary: event.summary || "",
       description: event.description || "",
       date_label: event.date_label || "",
@@ -136,7 +133,6 @@ export default function EventsManager() {
     const record = {
       title: form.title.trim(),
       slug,
-      event_type: form.event_type,
       summary: form.summary.trim() || null,
       description: form.description.trim() || null,
       date_label: form.date_label.trim() || null,
@@ -164,7 +160,9 @@ export default function EventsManager() {
       return;
     }
 
-    setSuccess(editingId ? "Entry updated successfully." : "Entry created successfully.");
+    setSuccess(
+      editingId ? "Entry updated successfully." : "Entry created successfully."
+    );
     setFormOpen(false);
     setForm(emptyForm);
     setEditingId(null);
@@ -198,14 +196,13 @@ export default function EventsManager() {
   }
 
   const filteredEvents = events.filter((event) => {
+    const searchTerm = search.toLowerCase();
     const matchesSearch =
-      event.title.toLowerCase().includes(search.toLowerCase()) ||
-      (event.location || "").toLowerCase().includes(search.toLowerCase());
+      (event.title || "").toLowerCase().includes(searchTerm) ||
+      (event.location || "").toLowerCase().includes(searchTerm);
 
     const matchesFilter =
-      filter === "all" ||
-      event.status === filter ||
-      event.event_type === filter;
+      filter === "all" || event.status === filter;
 
     return matchesSearch && matchesFilter;
   });
@@ -221,7 +218,7 @@ export default function EventsManager() {
             Events & Initiatives
           </h1>
           <p className="mt-2 text-sm text-[#68716b]">
-            Create, edit and publish society activities.
+            Manage all society activities in one place.
           </p>
         </div>
 
@@ -295,18 +292,6 @@ export default function EventsManager() {
             </label>
 
             <label className="text-sm font-semibold">
-              Type
-              <select
-                value={form.event_type}
-                onChange={(e) => updateField("event_type", e.target.value)}
-                className="mt-2 w-full rounded-lg border border-[#deded7] bg-white px-3 py-3 font-normal"
-              >
-                <option value="event">Event</option>
-                <option value="initiative">Initiative</option>
-              </select>
-            </label>
-
-            <label className="text-sm font-semibold">
               Publication status
               <select
                 value={form.status}
@@ -375,7 +360,9 @@ export default function EventsManager() {
               <input
                 type="url"
                 value={form.cover_image_url}
-                onChange={(e) => updateField("cover_image_url", e.target.value)}
+                onChange={(e) =>
+                  updateField("cover_image_url", e.target.value)
+                }
                 className="mt-2 w-full rounded-lg border border-[#deded7] px-3 py-3 font-normal"
                 placeholder="https://..."
               />
@@ -407,7 +394,11 @@ export default function EventsManager() {
               ) : (
                 <Save size={17} />
               )}
-              {saving ? "Saving..." : editingId ? "Save changes" : "Create entry"}
+              {saving
+                ? "Saving..."
+                : editingId
+                  ? "Save changes"
+                  : "Create entry"}
             </button>
 
             <button
@@ -443,8 +434,6 @@ export default function EventsManager() {
           <option value="all">All entries</option>
           <option value="published">Published</option>
           <option value="draft">Drafts</option>
-          <option value="event">Events</option>
-          <option value="initiative">Initiatives</option>
         </select>
 
         <button
@@ -467,7 +456,7 @@ export default function EventsManager() {
             <CalendarDays size={30} className="mx-auto text-[#c2c5bd]" />
             <h3 className="mt-4 font-bold">No entries found</h3>
             <p className="mt-2 text-sm text-[#929991]">
-              Create your first event or initiative to get started.
+              Create your first society activity to get started.
             </p>
           </div>
         ) : (
@@ -480,9 +469,6 @@ export default function EventsManager() {
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <h3 className="font-bold">{event.title}</h3>
-                    <span className="rounded-full bg-[#f7f6f2] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-[#68716b]">
-                      {event.event_type}
-                    </span>
                     <span
                       className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide ${
                         event.status === "published"
@@ -540,7 +526,8 @@ export default function EventsManager() {
       </div>
 
       <p className="mt-4 text-xs text-[#929991]">
-        {events.length} total {events.length === 1 ? "entry" : "entries"} in the database.
+        {events.length} total {events.length === 1 ? "entry" : "entries"} in
+        the database.
       </p>
     </div>
   );
