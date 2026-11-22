@@ -1,7 +1,8 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { Routes, Route, NavLink, Link, useParams, useLocation } from 'react-router-dom'
 import { ArrowRight, ArrowUpRight, Menu, X, Instagram, HeartHandshake, HandHeart, Users } from 'lucide-react'
-import { society, committee } from './data/content'
+import { society } from './data/content'
+import { supabase } from './lib/supabase'
 import { usePublishedEvents } from './hooks/usePublishedEvents'
 
 const Admin = lazy(() => import('./pages/Admin'))
@@ -211,48 +212,82 @@ function EventDetail({ activities, loading, error, retry }) {
 function PersonCard({ person, index, featured = false }) {
   return (
     <article className={featured ? 'person-card person-card-featured' : 'person-card'}>
-      <div className="person-photo">
-        <div className="photo-placeholder"><Users size={30} /><span>PHOTO</span></div>
+      <div className="person-photo" style={person.image_url ? { aspectRatio: (person.image_aspect_ratio || '3:4').replace(':', ' / '), height: 'auto' } : undefined}>
+        {person.image_url ? (
+          <img src={person.image_url} alt={person.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />
+        ) : (
+          <div className="photo-placeholder"><Users size={30} /><span>PHOTO</span></div>
+        )}
         <span className="person-index">{String(index + 1).padStart(2, '0')}</span>
       </div>
-      <div className="person-details"><span className="person-role">{person.role}</span><h3>{person.name}</h3><p>{person.bio}</p></div>
+      <div className="person-details"><span className="person-role">{person.position}</span><h3>{person.name}</h3>{person.bio && <p>{person.bio}</p>}</div>
     </article>
   )
 }
 
-function TeamRow({ title, people, startIndex }) {
+function TeamRow({ title, people, startIndex = 0 }) {
   if (!people.length) return null
   return (
     <section className="team-group">
       <div className="team-group-heading"><span className="eyebrow">Executive committee</span><h2>{title}</h2></div>
-      <div className="team-row">{people.map((person, index) => <PersonCard key={person.name} person={person} index={startIndex + index} />)}</div>
+      <div className="team-row">{people.map((person, index) => <PersonCard key={person.id} person={person} index={startIndex + index} />)}</div>
     </section>
   )
 }
 
 function Team() {
-  const president = committee.filter(person => person.role === 'President')
-  const vicePresidents = committee.filter(person => person.role === 'Vice President')
-  const generalSecretaries = committee.filter(person => person.role === 'General Secretary')
-  const jointSecretaries = committee.filter(person => person.role.startsWith('Joint Secretary'))
-  const eventSecretaries = committee.filter(person => person.role === 'Secretary Events')
-  const mediaSecretaries = committee.filter(person => person.role.toLowerCase().includes('media'))
-  const financeSecretaries = committee.filter(person => person.role === 'Secretary Finance')
-  const indexOf = person => committee.indexOf(person)
+  const [members, setMembers] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    let mounted = true
+    async function loadTeam() {
+      if (!supabase) {
+        if (mounted) { setError('The team directory is temporarily unavailable.'); setLoading(false) }
+        return
+      }
+      const { data, error: fetchError } = await supabase
+        .from('team_members')
+        .select('id, name, position, bio, image_url, image_aspect_ratio, sort_order')
+        .eq('is_active', true)
+        .order('sort_order', { ascending: true })
+        .order('created_at', { ascending: true })
+      if (!mounted) return
+      if (fetchError) setError('We could not load the team directory. Please try again later.')
+      else setMembers(data || [])
+      setLoading(false)
+    }
+    loadTeam()
+    return () => { mounted = false }
+  }, [])
+
+  const president = members.filter(person => person.position.trim().toLowerCase() === 'president')
+  const vicePresidents = members.filter(person => person.position.trim().toLowerCase() === 'vice president')
+  const generalSecretaries = members.filter(person => person.position.trim().toLowerCase() === 'general secretary')
+  const jointSecretaries = members.filter(person => person.position.trim().toLowerCase().startsWith('joint secretary'))
+  const eventSecretaries = members.filter(person => person.position.trim().toLowerCase() === 'secretary events')
+  const mediaSecretaries = members.filter(person => person.position.toLowerCase().includes('media'))
+  const financeSecretaries = members.filter(person => person.position.trim().toLowerCase() === 'secretary finance')
+  const groupedIds = new Set([...president, ...vicePresidents, ...generalSecretaries, ...jointSecretaries, ...eventSecretaries, ...mediaSecretaries, ...financeSecretaries].map(person => person.id))
+  const otherMembers = members.filter(person => !groupedIds.has(person.id))
+  const indexOf = person => members.findIndex(member => member.id === person?.id)
 
   return (
     <>
       <PageHero eyebrow="The people behind the purpose" title={<>A community built<br /><em>by people who care.</em></>} description="Meet the Main Panel of the MCS Community Service Society for the 2026–27 session." />
       <section className="section-pad page-content team-page">
         <div className="main-panel-label"><span className="eyebrow">2026–27 session</span><h2>Main Panel</h2><p>The elected office-bearers and appointed secretaries leading the society's work.</p></div>
-        <div className="president-feature">{president.map(person => <PersonCard key={person.name} person={person} index={indexOf(person)} featured />)}</div>
-        <TeamRow title="Vice Presidents" people={vicePresidents} startIndex={indexOf(vicePresidents[0])} />
-        <TeamRow title="General Secretaries" people={generalSecretaries} startIndex={indexOf(generalSecretaries[0])} />
-        <TeamRow title="Joint Secretaries" people={jointSecretaries} startIndex={indexOf(jointSecretaries[0])} />
-        <TeamRow title="Secretary Events" people={eventSecretaries} startIndex={indexOf(eventSecretaries[0])} />
-        <TeamRow title="Secretary Media" people={mediaSecretaries} startIndex={indexOf(mediaSecretaries[0])} />
-        <TeamRow title="Secretary Finance" people={financeSecretaries} startIndex={indexOf(financeSecretaries[0])} />
-        <div className="committee-note"><span className="red-rule" />The Main Panel is supported by 8 Directors and 8 Deputy Directors.</div>
+        {loading ? <div className="activity-state" role="status">Loading team members…</div> : error ? <div className="activity-state" role="alert">{error}</div> : members.length === 0 ? <div className="activity-state">The team directory will be updated soon.</div> : <>
+          <div className="president-feature">{president.map(person => <PersonCard key={person.id} person={person} index={indexOf(person)} featured />)}</div>
+          <TeamRow title="Vice Presidents" people={vicePresidents} startIndex={indexOf(vicePresidents[0])} />
+          <TeamRow title="General Secretaries" people={generalSecretaries} startIndex={indexOf(generalSecretaries[0])} />
+          <TeamRow title="Joint Secretaries" people={jointSecretaries} startIndex={indexOf(jointSecretaries[0])} />
+          <TeamRow title="Secretary Events" people={eventSecretaries} startIndex={indexOf(eventSecretaries[0])} />
+          <TeamRow title="Secretary Media" people={mediaSecretaries} startIndex={indexOf(mediaSecretaries[0])} />
+          <TeamRow title="Secretary Finance" people={financeSecretaries} startIndex={indexOf(financeSecretaries[0])} />
+          <TeamRow title="Other Office-Bearers" people={otherMembers} startIndex={indexOf(otherMembers[0])} />
+        </>}
       </section>
     </>
   )
