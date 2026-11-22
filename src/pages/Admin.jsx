@@ -36,8 +36,24 @@ const navigation = [
   { id: "settings", label: "Site Settings", icon: Settings },
 ];
 
+const ADMIN_SECTION_STORAGE_KEY = "mcs-css-admin-active-section-v1";
+
 function Dashboard({ profile, onLogout }) {
-  const [activeSection, setActiveSection] = useState("overview");
+  const [activeSection, setActiveSection] = useState(() => {
+    try {
+      return window.localStorage.getItem(ADMIN_SECTION_STORAGE_KEY) || "overview";
+    } catch {
+      return "overview";
+    }
+  });
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(ADMIN_SECTION_STORAGE_KEY, activeSection);
+    } catch (storageError) {
+      console.warn("Unable to remember the admin section:", storageError);
+    }
+  }, [activeSection]);
   const [counts, setCounts] = useState({
     events: null,
     team: null,
