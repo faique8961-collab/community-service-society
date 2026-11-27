@@ -14,6 +14,7 @@ import {
   Upload,
 } from "lucide-react";
 import { supabase } from "../../lib/supabase";
+import ImageCropper from "./ImageCropper";
 
 const emptyForm = {
   title: "",
@@ -24,7 +25,9 @@ const emptyForm = {
   event_date: "",
   location: "",
   cover_image_url: "",
+  cover_image_aspect_ratio: "4:3",
   gallery_urls: "",
+  gallery_image_settings: {},
   status: "draft",
 };
 
@@ -153,6 +156,7 @@ export default function EventsManager() {
   const [filter, setFilter] = useState("all");
   const [uploadingCover, setUploadingCover] = useState(false);
   const [uploadingGallery, setUploadingGallery] = useState(false);
+  const [cropQueue, setCropQueue] = useState([]);
 
   // Read a saved form once when this component is first created.
   const [savedDraft] = useState(readSavedDraft);
@@ -229,7 +233,9 @@ export default function EventsManager() {
       event_date: event.event_date || "",
       location: event.location || "",
       cover_image_url: event.cover_image_url || "",
+      cover_image_aspect_ratio: event.cover_image_aspect_ratio || "4:3",
       gallery_urls: (event.gallery_urls || []).join("\n"),
+      gallery_image_settings: event.gallery_image_settings && typeof event.gallery_image_settings === "object" ? event.gallery_image_settings : {},
       status: event.status || "draft",
     });
     setError("");
@@ -271,58 +277,62 @@ export default function EventsManager() {
   }
 
 
-  async function handleCoverUpload(event) {
+  function handleCoverUpload(event) {
     const file = event.target.files?.[0];
     event.target.value = "";
     if (!file) return;
-    setUploadingCover(true);
+    setCropQueue([{ file, kind: "cover" }]);
     setError("");
     setSuccess("");
-    try {
-      const uploaded = await uploadImage(file, "covers");
-      updateField("cover_image_url", uploaded.url);
-      setUploadedPaths((previous) => [...previous, uploaded.path]);
-      setSuccess("Cover image uploaded to Supabase Storage.");
-    } catch (uploadError) {
-      setError(uploadError.message || "The cover image could not be uploaded.");
-    } finally {
-      setUploadingCover(false);
-    }
   }
 
-  async function handleGalleryUpload(event) {
+  function handleGalleryUpload(event) {
     const files = Array.from(event.target.files || []);
     event.target.value = "";
     if (!files.length) return;
-    setUploadingGallery(true);
+    setCropQueue(files.map((file) => ({ file, kind: "gallery" })));
     setError("");
     setSuccess("");
-    const uploadedUrls = [];
-    const newPaths = [];
+  }
+
+  async function handleCropApply(blob, originalName, ratio) {
+    const job = cropQueue[0];
+    if (!job) return;
+    const croppedFile = new File([blob], originalName.replace(/\.[^.]+$/, "") + ".webp", { type: "image/webp" });
+    const isCover = job.kind === "cover";
+    if (isCover) setUploadingCover(true);
+    else setUploadingGallery(true);
     try {
-      for (const file of files) {
-        const uploaded = await uploadImage(file, "gallery");
-        uploadedUrls.push(uploaded.url);
-        newPaths.push(uploaded.path);
-      }
-      setForm((previous) => {
-        const existing = previous.gallery_urls.split("\n").map((url) => url.trim()).filter(Boolean);
-        return { ...previous, gallery_urls: [...existing, ...uploadedUrls].join("\n") };
-      });
-      setUploadedPaths((previous) => [...previous, ...newPaths]);
-      setSuccess(`${uploadedUrls.length} gallery image${uploadedUrls.length === 1 ? "" : "s"} uploaded to Supabase Storage.`);
-    } catch (uploadError) {
-      setError(`${uploadError.message || "A gallery image could not be uploaded."} Any images that finished uploading remain attached to this draft.`);
-      if (newPaths.length) {
-        setUploadedPaths((previous) => [...previous, ...newPaths]);
+      const uploaded = await uploadImage(croppedFile, isCover ? "covers" : "gallery");
+      setUploadedPaths((previous) => [...previous, uploaded.path]);
+      if (isCover) {
+        setForm((previous) => ({ ...previous, cover_image_url: uploaded.url, cover_image_aspect_ratio: ratio }));
+        setSuccess("Cover image cropped and uploaded.");
+      } else {
         setForm((previous) => {
           const existing = previous.gallery_urls.split("\n").map((url) => url.trim()).filter(Boolean);
-          return { ...previous, gallery_urls: [...existing, ...uploadedUrls].join("\n") };
+          return {
+            ...previous,
+            gallery_urls: [...existing, uploaded.url].join("\n"),
+            gallery_image_settings: { ...(previous.gallery_image_settings || {}), [uploaded.url]: ratio },
+          };
         });
+        setSuccess("Gallery image cropped and uploaded.");
       }
+    } catch (uploadError) {
+      setError(uploadError.message || "The cropped image could not be uploaded.");
     } finally {
-      setUploadingGallery(false);
+      if (isCover) setUploadingCover(false);
+      else setUploadingGallery(false);
+      setCropQueue((previous) => previous.slice(1));
     }
+  }
+
+  function updateGalleryRatio(url, ratio) {
+    setForm((previous) => ({
+      ...previous,
+      gallery_image_settings: { ...(previous.gallery_image_settings || {}), [url]: ratio },
+    }));
   }
 
   async function removeUploadedImage(url, field) {
@@ -370,6 +380,8 @@ export default function EventsManager() {
       .map((url) => url.trim())
       .filter(Boolean);
 
+    const previousEvent = editingId ? events.find((item) => item.id === editingId) : null;
+    const previousImageUrls = previousEvent ? getEventImageUrls(previousEvent) : [];
     const record = {
       title: form.title.trim(),
       slug,
@@ -379,7 +391,9 @@ export default function EventsManager() {
       event_date: form.event_date || null,
       location: form.location.trim() || null,
       cover_image_url: form.cover_image_url.trim() || null,
+      cover_image_aspect_ratio: form.cover_image_aspect_ratio || "4:3",
       gallery_urls: galleryUrls,
+      gallery_image_settings: form.gallery_image_settings || {},
       status: form.status,
     };
 
@@ -398,6 +412,31 @@ export default function EventsManager() {
       setError(result.error.message);
       setSaving(false);
       return;
+    }
+
+    // Clean up uploads from this draft that were replaced or removed before saving.
+    const retainedUrls = new Set([record.cover_image_url, ...record.gallery_urls].filter(Boolean));
+    const retainedPaths = new Set([...retainedUrls].map(getStoragePathFromPublicUrl).filter(Boolean));
+    const unusedDraftPaths = uploadedPaths.filter((path) => !retainedPaths.has(path));
+
+    // Also remove old event images only after confirming no event still references them.
+    const obsoleteUrls = previousImageUrls.filter((url) => !retainedUrls.has(url));
+    if (obsoleteUrls.length) {
+      const { data: currentEvents, error: referenceError } = await supabase
+        .from("events")
+        .select("cover_image_url, gallery_urls");
+      if (!referenceError) {
+        const stillUsed = new Set((currentEvents || []).flatMap((item) => getEventImageUrls(item)));
+        const obsoletePaths = obsoleteUrls
+          .filter((url) => !stillUsed.has(url))
+          .map(getStoragePathFromPublicUrl)
+          .filter(Boolean);
+        for (const path of obsoletePaths) if (!unusedDraftPaths.includes(path)) unusedDraftPaths.push(path);
+      }
+    }
+    if (unusedDraftPaths.length) {
+      const { error: cleanupError } = await supabase.storage.from(STORAGE_BUCKET).remove([...new Set(unusedDraftPaths)]);
+      if (cleanupError) console.warn("Could not remove replaced event images:", cleanupError);
     }
 
     setSuccess(
@@ -508,6 +547,8 @@ export default function EventsManager() {
   });
 
   return (
+    <>
+    {cropQueue.length > 0 && <ImageCropper key={`${cropQueue[0].file.name}-${cropQueue.length}`} file={cropQueue[0].file} defaultRatio="4:3" onCancel={() => setCropQueue([])} onApply={handleCropApply} />}
     <div>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
@@ -688,6 +729,14 @@ export default function EventsManager() {
               {form.cover_image_url && (
                 <img src={form.cover_image_url} alt="Cover preview" className="mt-4 max-h-56 w-full rounded-lg border border-[#e5e2da] object-contain" onError={(e) => { e.currentTarget.style.display = "none"; }} />
               )}
+              {form.cover_image_url && (
+                <label className="mt-3 block text-sm font-semibold">
+                  Image shape
+                  <select value={form.cover_image_aspect_ratio || "4:3"} onChange={(e) => updateField("cover_image_aspect_ratio", e.target.value)} className="mt-2 w-full rounded-lg border border-[#deded7] bg-white px-3 py-2.5 font-normal sm:max-w-xs">
+                    <option value="1:1">Square (1:1)</option><option value="3:4">Portrait (3:4)</option><option value="4:3">Landscape (4:3)</option>
+                  </select>
+                </label>
+              )}
             </div>
 
             <div className="sm:col-span-2 rounded-xl border border-[#e5e2da] p-4">
@@ -718,6 +767,13 @@ export default function EventsManager() {
                   {form.gallery_urls.split("\n").map((url) => url.trim()).filter(Boolean).map((url, index) => (
                     <div key={`${url}-${index}`} className="relative overflow-hidden rounded-lg border border-[#e5e2da]">
                       <img src={url} alt={`Gallery preview ${index + 1}`} className="h-28 w-full object-cover" onError={(e) => { e.currentTarget.style.display = "none"; }} />
+                      <div className="border-t border-[#e5e2da] p-2">
+                        <label className="block text-[11px] font-semibold text-[#68716b]">Image shape
+                          <select value={(form.gallery_image_settings || {})[url] || "4:3"} onChange={(e) => updateGalleryRatio(url, e.target.value)} className="mt-1 w-full rounded border border-[#deded7] bg-white px-2 py-1.5 text-xs font-normal">
+                            <option value="1:1">Square</option><option value="3:4">Portrait</option><option value="4:3">Landscape</option>
+                          </select>
+                        </label>
+                      </div>
                       <button type="button" onClick={() => removeUploadedImage(url, "gallery_urls")} className="absolute right-2 top-2 rounded-md bg-white/95 px-2 py-1 text-xs font-semibold text-red-600 shadow">
                         Remove
                       </button>
@@ -731,7 +787,7 @@ export default function EventsManager() {
           <div className="mt-7 flex flex-wrap gap-3">
             <button
               type="submit"
-              disabled={saving || uploadingCover || uploadingGallery}
+              disabled={saving || uploadingCover || uploadingGallery || cropQueue.length > 0}
               className="inline-flex items-center gap-2 rounded-lg bg-[#a52d36] px-5 py-3 text-sm font-semibold text-white hover:bg-[#85232b] disabled:opacity-60"
             >
               {saving ? (
@@ -885,5 +941,6 @@ export default function EventsManager() {
         the database.
       </p>
     </div>
+    </>
   );
 }

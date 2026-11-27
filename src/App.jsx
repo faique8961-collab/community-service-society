@@ -4,6 +4,7 @@ import { ArrowRight, ArrowUpRight, Menu, X, Instagram, HeartHandshake, HandHeart
 import { society } from './data/content'
 import { supabase } from './lib/supabase'
 import { usePublishedEvents } from './hooks/usePublishedEvents'
+import { usePublishedAnnouncements } from './hooks/usePublishedAnnouncements'
 
 const Admin = lazy(() => import('./pages/Admin'))
 
@@ -74,7 +75,46 @@ function ActivityState({ loading, error, retry, emptyText = 'There are no publis
   return <p className="activity-state">{emptyText}</p>
 }
 
-function Home({ activities, loading, error, retry }) {
+function PublicAnnouncements({ announcements }) {
+  if (!announcements.length) return null
+
+  return (
+    <section className="home-announcements section-pad" aria-labelledby="announcements-heading">
+      <div className="section-head-row">
+        <SectionIntro kicker="From the society" title={<>Latest announcements.</>} text="Notices, updates, and opportunities from the MCS Community Service Society." />
+      </div>
+      <div className="announcement-grid">
+        {announcements.map((item) => (
+          <article className="public-announcement" key={item.id}>
+            {item.image_url && (
+              <div className="public-announcement-image" style={{ aspectRatio: (item.image_aspect_ratio || '4:3').replace(':', ' / ') }}>
+                <img src={item.image_url} alt="" loading="lazy" />
+              </div>
+            )}
+            <div className="public-announcement-copy">
+              {item.published_at && <time dateTime={item.published_at}>{new Intl.DateTimeFormat('en-PK', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(item.published_at))}</time>}
+              <h3>{item.title}</h3>
+              <p>{item.body}</p>
+              {item.action_label && item.action_url && (
+                <a
+                  className="announcement-action"
+                  href={item.action_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {item.action_label}
+                  <ArrowUpRight size={15} aria-hidden="true" />
+                </a>
+              )}
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function Home({ activities, loading, error, retry, announcements = [] }) {
   return (
     <>
       <section className="hero">
@@ -97,6 +137,8 @@ function Home({ activities, loading, error, retry }) {
           <div className="hero-side-label">MCS · COMMUNITY SERVICE SOCIETY</div>
         </div>
       </section>
+
+      <PublicAnnouncements announcements={announcements} />
 
       <section className="home-intro section-pad">
         <div className="home-intro-mark">
@@ -153,8 +195,8 @@ function About() {
 function EventCard({ event }) {
   return (
     <article className="event-card">
-      <Link to={`/events/${event.id}`} className="event-image">
-        {event.images?.[0] ? <img src={event.images[0]} alt={event.title} /> : <div className="empty-photo">Photo coming soon</div>}
+      <Link to={`/events/${event.id}`} className="event-image" style={event.images?.[0] ? { aspectRatio: (event.imageSettings?.[event.images[0]] || event.coverImageAspectRatio || '4:3').replace(':', ' / '), height: 'auto' } : undefined}>
+        {event.images?.[0] ? <img src={event.images[0]} alt={event.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div className="empty-photo">Photo coming soon</div>}
         {event.date && <span>{event.date}</span>}
       </Link>
       <div className="event-card-copy">
@@ -201,7 +243,7 @@ function EventDetail({ activities, loading, error, retry }) {
       <PageHero eyebrow={eyebrow} title={event.title} description={event.description || event.summary || 'An activity by the MCS Community Service Society.'} />
       <section className="section-pad">
         <div className="detail-gallery event-detail-gallery">
-          {event.images?.length ? event.images.map(src => <img key={src} src={src} alt={`${event.title} photograph`} />) : <div className="empty-photo">Photographs for this activity will be added here.</div>}
+          {event.images?.length ? event.images.map(src => <img key={src} src={src} alt={`${event.title} photograph`} style={{ aspectRatio: (event.imageSettings?.[src] || (src === event.images[0] ? event.coverImageAspectRatio : '4:3')).replace(':', ' / '), height: 'auto', objectFit: 'cover' }} />) : <div className="empty-photo">Photographs for this activity will be added here.</div>}
         </div>
         <Link className="inline-more" to="/events">← Back to events & initiatives</Link>
       </section>
@@ -294,7 +336,7 @@ function Team() {
 }
 
 function Gallery({ activities, loading, error, retry }) {
-  const allImages = activities.flatMap(event => event.images.map(src => ({ src, title: event.title })))
+  const allImages = activities.flatMap(event => event.images.map(src => ({ src, title: event.title, ratio: event.imageSettings?.[src] || (src === event.images[0] ? event.coverImageAspectRatio : '4:3') })))
   const uniqueImages = [...new Map(allImages.map(item => [item.src, item])).values()]
 
   return (
@@ -304,7 +346,7 @@ function Gallery({ activities, loading, error, retry }) {
         {loading || error ? (
           <ActivityState loading={loading} error={error} retry={retry} />
         ) : uniqueImages.length ? (
-          <div className="gallery-grid">{uniqueImages.map(item => <figure key={item.src}><img src={item.src} alt={item.title} /><figcaption>{item.title}</figcaption></figure>)}</div>
+          <div className="gallery-grid">{uniqueImages.map(item => <figure key={item.src}><img src={item.src} alt={item.title} style={{ aspectRatio: item.ratio.replace(':', ' / '), height: 'auto', objectFit: 'cover' }} /><figcaption>{item.title}</figcaption></figure>)}</div>
         ) : (
           <ActivityState emptyText="There are no published activity photographs yet." />
         )}
@@ -356,6 +398,7 @@ function NotFound() {
 function AppShell() {
   const { pathname } = useLocation()
   const { events: activities, loading, error, retry } = usePublishedEvents()
+  const { announcements } = usePublishedAnnouncements()
 
   // Reset the scroll position whenever the user navigates to a new page.
   useEffect(() => {
@@ -367,7 +410,7 @@ function AppShell() {
       <Header />
       <main>
         <Routes>
-          <Route path="/" element={<Home activities={activities} loading={loading} error={error} retry={retry} />} />
+          <Route path="/" element={<Home activities={activities} loading={loading} error={error} retry={retry} announcements={announcements} />} />
           <Route path="/about" element={<About />} />
           <Route path="/events" element={<EventsPage activities={activities} loading={loading} error={error} retry={retry} />} />
           <Route path="/events/:id" element={<EventDetail activities={activities} loading={loading} error={error} retry={retry} />} />

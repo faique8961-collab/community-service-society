@@ -23,6 +23,7 @@ import {
 import { supabase, isSupabaseConfigured } from "../lib/supabase";
 import EventsManager from "../components/admin/EventsManager";
 import TeamManager from "../components/admin/TeamManager";
+import AnnouncementsManager from "../components/admin/AnnouncementsManager";
 // ---------------------------------------------
 // ADMIN DASHBOARD
 // ---------------------------------------------
@@ -400,6 +401,8 @@ function Dashboard({ profile, onLogout }) {
   <EventsManager />
 ) : activeSection === "team" ? (
   <TeamManager />
+) : activeSection === "announcements" ? (
+  <AnnouncementsManager />
 ) : (
   <section className="rounded-xl border border-[#e5e2da] bg-white p-8 shadow-sm">
     <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#f8e9e9] text-[#a52d36]">

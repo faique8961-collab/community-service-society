@@ -17,6 +17,8 @@ function mapActivity(row) {
     summary: row.summary || '',
     description: row.description || row.summary || '',
     images: [...new Set(images)],
+    coverImageAspectRatio: row.cover_image_aspect_ratio || '4:3',
+    imageSettings: row.gallery_image_settings && typeof row.gallery_image_settings === 'object' ? row.gallery_image_settings : {},
   }
 }
 
@@ -38,7 +40,7 @@ export function usePublishedEvents() {
 
     const { data, error: queryError } = await supabase
       .from('events')
-      .select('id, title, slug, summary, description, date_label, event_date, location, cover_image_url, gallery_urls')
+      .select('id, title, slug, summary, description, date_label, event_date, location, cover_image_url, cover_image_aspect_ratio, gallery_urls, gallery_image_settings')
       .eq('status', 'published')
       .order('event_date', { ascending: false, nullsFirst: false })
       .order('created_at', { ascending: false })
